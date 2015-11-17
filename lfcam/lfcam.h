@@ -20,9 +20,12 @@ protected:
     Error error;
     BusManager busMgr;
     unsigned int numCameras;
-    PGRGuid *guids;  // Array of camera identifiers
-    Image rawImage;
+    PGRGuid *guids;    // Array of camera identifiers
     Camera *pcam;
+public:
+    //Image rawImage;
+    Image *rawImages;  // Computer memory buffer
+    int N;             // Number of elements in rawImages
 public:
     LfCam();
     ~LfCam();
@@ -33,8 +36,8 @@ public:
     int connect(int cameraIndex);
     int start();
     // Run camera
-    int retrieveImage();
-    Image convertImage();
+    int retrieveImage(int);
+    Image convertImage(Image &);
     int saveImage(Image &img, ostringstream &filename);
     // Stop camera
     int stop();
@@ -45,9 +48,12 @@ public:
     bool fireSoftwareTrigger();
     int powerOn();
     bool supportsExternalTrigger();
+    int setTriggerMode(int); // Standard external trigger mode = 0
     int setTriggerMode15();
     int setGrabTimeout(int ms); // 5000 ms
     int setTriggerModeOff();
+    int setImageBufferSize(int);
+    int writeImageBufferToDisk();
 };
 
 class LfUsbCam: public LfCam {

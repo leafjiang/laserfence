@@ -1,0 +1,111 @@
+adminuser@adminuser-VirtualBox:~/fp/laserfence/lfcam$ ../../laserfence-bin/lfapp 10 10 400 400 -n 10 1>stdout.txt 2>stderr.txt
+
+row1 10
+col1 10
+row2 400
+col2 400
+Capture 10 frames, save them to disk, then quit program.
+Application started on 1439341969785 ms since epoch
+Version: 242e-dirty
+LfCam::LfCam begin...
+LfGigECam::LfGigECam begin...
+Number of cameras discovered: 1
+LfGigECam::printCameraInfo
+
+*** GigE CAMERA INFORMATION ***
+Serial number - 12501906
+Camera model - Flea3 FL3-GE-50S5C
+Camera vendor - Point Grey Research
+Sensor - 
+Resolution - 
+Firmware version - 
+Firmware build time - 
+GigE version - 1.2
+User defined name - 
+XML URL 1 - 
+XML URL 2 - 
+MAC address - 00:b0:9d:be:c3:92
+IP address - 192.168.1.3
+Subnet mask - 255.255.255.0
+Default gateway - 192.168.1.1
+
+Number of cameras enumerated: 1
+LfCam::printBuildInfo
+FlyCapture2 library version: 2.7.3.19
+Application build date: Aug 11 2015 20:49:58
+
+Connecting to camera...
+LfCam::powerOn
+LfGigECam::printAllStreamChannelsInfo
+Printing stream channel information for channel 0
+LfGigECam::printStreamChannelInfo
+Network interface: 0
+Host Port: 0
+Do not fragment bit: Disabled
+Packet size: 1400
+Inter packet delay: 400
+Destination IP address: 224.0.0.1
+Source port (on camera): 1108
+
+LfCam::setTriggerMode3()
+Get current trigger settings
+ onOff = 1
+ mode = 0
+ parameter = 2
+ polarity = 1
+ source = 0
+Set trigger settings
+ onOff = 1
+ mode = 0
+ parameter = 2
+ polarity = 1
+ source = 0
+Polling camera for trigger ready
+Trigger is ready!
+Querying GigE camera mode...
+Mode = 6
+Setting GigE camera to mode 6
+Querying GigE image setting information...
+maxWidth = 612
+maxHeight = 512
+offsetHStepSize = 2
+offsetVStepSize = 2
+imageHStepSize = 4
+imageVStepSize = 2
+pixelFormatBitField = 2215641088
+vendorPixelFormatBitField = 0
+Querying GigE image settings ...
+offsetX = 0
+offsetY = 0
+height = 512
+width = 612
+pixelFormat = 2147483648
+Setting GigE image settings...
+Start capturing images...
+Grabbed image
+first image rows = 512, cols = 612
+Grabbed image
+second image rows = 512, cols = 612
+Grabbed image
+first image rows = 512, cols = 612
+Grabbed image
+second image rows = 512, cols = 612
+Grabbed image
+first image rows = 512, cols = 612
+Error Trace:
+Source: CameraInternal.cpp(123) Built: Mar  9 2015 10:16:03 - There is an image consistency issue with this image.
++-> From: Iso.cpp(894) Built: Mar  9 2015 10:16:30 - There is an image consistency issue with this image.
+Grabbed image
+second image rows = 512, cols = 612
+Error Trace:
+Source: CameraInternal.cpp(123) Built: Mar  9 2015 10:16:03 - There is an image consistency issue with this image.
++-> From: Iso.cpp(894) Built: Mar  9 2015 10:16:30 - There is an image consistency issue with this image.
+Grabbed image
+first image rows = 512, cols = 612
+Grabbed image
+second image rows = 512, cols = 612
+Grabbed image
+first image rows = 512, cols = 612
+Grabbed image
+second image rows = 512, cols = 612
+Done!

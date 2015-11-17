@@ -1,11 +1,8 @@
-// Camera object for laser fence application.
-// 07/16/15 LAJ -- Document created
-
 #include "lfcam.h"
 
 LfCam::LfCam(void)
 {
-    cout << "LfCam::LfCam begin..." << endl;
+    cerr << "LfCam::LfCam begin..." << endl;
 
     // Since this application saves images in the current folder
     // we must ensure that we have permission to write to this folder.
@@ -13,11 +10,14 @@ LfCam::LfCam(void)
     FILE* tempFile = fopen("test.txt", "w+");
     if (tempFile == NULL)
     {
-        cout << "Failed to create file in current folder.  Please check permissions." << endl;
+        cerr << "Failed to create file in current folder.  Please check permissions." << endl;
         throw runtime_error("No permission to write to current folder.");
     }
     fclose(tempFile);
     remove("test.txt");
+
+    // Initial size of image memory buffer
+    N = 0;
 }
 
 LfCam::~LfCam(void)
@@ -30,18 +30,18 @@ LfCam::~LfCam(void)
 
 void LfCam::printBuildInfo()
 {
-    cout << "LfCam::printBuildInfo" << endl;
+    cerr << "LfCam::printBuildInfo" << endl;
 
     FC2Version fc2Version;
     Utilities::GetLibraryVersion( &fc2Version );
 
     ostringstream version;
     version << "FlyCapture2 library version: " << fc2Version.major << "." << fc2Version.minor << "." << fc2Version.type << "." << fc2Version.build;
-    cout << version.str() << endl;
+    cerr << version.str() << endl;
 
     ostringstream timeStamp;
     timeStamp <<"Application build date: " << __DATE__ << " " << __TIME__;
-    cout << timeStamp.str() << endl << endl;
+    cerr << timeStamp.str() << endl << endl;
 }
 
 void LfCam::printError( Error error )
@@ -51,7 +51,7 @@ void LfCam::printError( Error error )
 
 int LfCam::connect(int cameraIndex)
 {
-    cout << "Connecting to camera..." << endl;
+    cerr << "Connecting to camera..." << endl;
 
     // Connect to a camera
     error = pcam->Connect(&(guids[cameraIndex]));
@@ -65,7 +65,7 @@ int LfCam::connect(int cameraIndex)
 
 int LfCam::start()
 {
-    cout << "Start capturing images..." << endl;
+    cerr << "Start capturing images..." << endl;
 
     // Start capturing images
     error = pcam->StartCapture();
@@ -77,27 +77,27 @@ int LfCam::start()
     return 0;
 }
 
-int LfCam::retrieveImage()
+int LfCam::retrieveImage(int I)
 {
     // Retrieve an image
-    error = pcam->RetrieveBuffer( &rawImage );
+    error = pcam->RetrieveBuffer( &rawImages[I] );
     if (error != PGRERROR_OK)
     {
         printError( error );
     }
 
-    cout << "Grabbed image" << endl;
+    cerr << "Grabbed image" << endl;
 
     return 0;
 }
 
-Image LfCam::convertImage()
+Image LfCam::convertImage(Image &rawImg)
 {
     // Create a converted image
     Image convertedImage;
 
     // Convert the raw image
-    error = rawImage.Convert( PIXEL_FORMAT_MONO8, &convertedImage );
+    error = rawImg.Convert( PIXEL_FORMAT_MONO8, &convertedImage );
     if (error != PGRERROR_OK)
     {
         printError( error );
@@ -208,7 +208,7 @@ bool LfCam::fireSoftwareTrigger()
 
 int LfCam::powerOn()
 {
-    cout << "LfCam::powerOn" << endl;
+    cerr << "LfCam::powerOn" << endl;
 
     // Power on the camera
     const unsigned int k_cameraPower = 0x610;
@@ -270,12 +270,73 @@ bool LfCam::supportsExternalTrigger()
 
     if ( triggerModeInfo.present != true )
     {
-        cout << "Camera does not support external trigger! Exiting..." << endl;
+        cerr << "Camera does not support external trigger! Exiting..." << endl;
         return false;
     }
 
     return true;
 }
+
+int LfCam::setTriggerMode(int modenum)
+{
+    // Standard external trigger mode
+    cerr << "LfCam::setTriggerMode3()" << endl;
+
+    // Get current trigger settings
+    cerr << "Get current trigger settings" << endl;
+    TriggerMode triggerMode;
+    error = pcam->GetTriggerMode( &triggerMode );
+    if (error != PGRERROR_OK)
+    {
+        printError( error );
+        return -1;
+    }
+    cerr << " onOff = " << triggerMode.onOff << endl;
+    cerr << " mode = " << triggerMode.mode << endl;
+    cerr << " parameter = " << triggerMode.parameter << endl;
+    cerr << " polarity = " << triggerMode.polarity << endl;
+    cerr << " source = " << triggerMode.source << endl;
+
+    // Set camera to trigger mode modenum (usually 0 or 15)
+    triggerMode.onOff = true;
+    triggerMode.mode = modenum;
+    triggerMode.parameter = 2;   // Capture 2 frames per trigger event (for mode 15)
+    triggerMode.polarity = 1;   // Trigger on rising edge (1=rising edge?)
+
+    // A source of 7 means software trigger
+    //triggerMode.source = 7;
+
+    // Triggering the camera externally using source 0.
+    triggerMode.source = 0; // GPIO trigger pin 0
+
+    cerr << "Set trigger settings" << endl;
+    cerr << " onOff = " << triggerMode.onOff << endl;
+    cerr << " mode = " << triggerMode.mode << endl;
+    cerr << " parameter = " << triggerMode.parameter << endl;
+    cerr << " polarity = " << triggerMode.polarity << endl;
+    cerr << " source = " << triggerMode.source << endl;
+    error = pcam->SetTriggerMode( &triggerMode );
+    if (error != PGRERROR_OK)
+    {
+        printError( error );
+        return -1;
+    }
+
+    // Poll to ensure camera is ready
+    cerr << "Polling camera for trigger ready" << endl;
+    bool retVal = pollForTriggerReady();
+    if( !retVal )
+    {
+        cerr << endl;
+        cerr << "Error polling for trigger ready!" << endl;
+        return -1;
+    }
+
+    cerr << "Trigger is ready!" << endl;
+
+    return 0;
+}
+
 
 int LfCam::setTriggerMode15()
 {
@@ -311,8 +372,8 @@ int LfCam::setTriggerMode15()
     bool retVal = pollForTriggerReady();
     if( !retVal )
     {
-        cout << endl;
-        cout << "Error polling for trigger ready!" << endl;
+        cerr << endl;
+        cerr << "Error polling for trigger ready!" << endl;
         return -1;
     }
 
@@ -321,6 +382,10 @@ int LfCam::setTriggerMode15()
 
 int LfCam::setGrabTimeout(int ms)
 {
+    // Time in milliseconds that RetrieveBuffer() and WaitForBufferEvent()
+    // will wait for an image before timing out and returning.
+    // enum GrabTimeout { TIMEOUT_NONE = 0, TIMEOUT_INFINITE = -1, TIME- OUT_UNSPECIFIED = -2, GRAB_TIMEOUT_FORCE_32BITS = FULL_32BIT- _VALUE }
+
     // Get the camera configuration
     FC2Config config;
     error = pcam->GetConfiguration( &config );
@@ -363,16 +428,40 @@ int LfCam::setTriggerModeOff()
         printError( error );
         return -1;
     }
-    cout << endl;
-    cout << "Finished grabbing images" << endl;
+    cerr << endl;
+    cerr << "Finished grabbing images" << endl;
     return 0;
 }
 
+int LfCam::setImageBufferSize(int n)
+{
+    if (n > 1) {
+        rawImages = new Image[n];
+        N = n;
+        return 0;
+    }
+
+    return -1;
+}
+
+int LfCam::writeImageBufferToDisk()
+{
+    for (int I=0; I<N; I++) {
+        Image convertedImage = convertImage(rawImages[I]);
+        // Save frames
+        ostringstream filename;
+        filename << "snapshot_" << I << ".png";
+        saveImage(convertedImage, filename);
+    }
+    // To draw a transparent rectangle over the image
+    // from the command line, use ImageMagick
+    // convert input.jpg -strokewidth 0 -fill "rgba( 255, 215, 0 , 0.5 )" -draw "rectangle 66,50 200,150 " output.jpg
+}
 
 
 LfUsbCam::LfUsbCam()
 {
-    cout << "LfUsbCam::LfUsbCam begin..." << endl;
+    cerr << "LfUsbCam::LfUsbCam begin..." << endl;
 
     error = busMgr.GetNumOfCameras(&numCameras);
     if (error != PGRERROR_OK)
@@ -380,10 +469,10 @@ LfUsbCam::LfUsbCam()
         printError( error );
         throw runtime_error("Error getting number of cameras");
     }
-    cout << "Number of cameras detected: " << numCameras << endl;
+    cerr << "Number of cameras detected: " << numCameras << endl;
     if ( numCameras < 1 )
     {
-        cout << "Insufficient number of cameras... exiting" << endl;
+        cerr << "Insufficient number of cameras... exiting" << endl;
         throw runtime_error("No cameras detected.");
     }
 
@@ -417,15 +506,15 @@ void LfUsbCam::printCameraInfo()
 
     CameraInfo* pCamInfo = &camInfo;
 
-    cout << endl;
-    cout << "*** CAMERA INFORMATION ***" << endl;
-    cout << "Serial number -" << pCamInfo->serialNumber << endl;
-    cout << "Camera model - " << pCamInfo->modelName << endl;
-    cout << "Camera vendor - " << pCamInfo->vendorName << endl;
-    cout << "Sensor - " << pCamInfo->sensorInfo << endl;
-    cout << "Resolution - " << pCamInfo->sensorResolution << endl;
-    cout << "Firmware version - " << pCamInfo->firmwareVersion << endl;
-    cout << "Firmware build time - " << pCamInfo->firmwareBuildTime << endl << endl;
+    cerr << endl;
+    cerr << "*** CAMERA INFORMATION ***" << endl;
+    cerr << "Serial number -" << pCamInfo->serialNumber << endl;
+    cerr << "Camera model - " << pCamInfo->modelName << endl;
+    cerr << "Camera vendor - " << pCamInfo->vendorName << endl;
+    cerr << "Sensor - " << pCamInfo->sensorInfo << endl;
+    cerr << "Resolution - " << pCamInfo->sensorResolution << endl;
+    cerr << "Firmware version - " << pCamInfo->firmwareVersion << endl;
+    cerr << "Firmware build time - " << pCamInfo->firmwareBuildTime << endl << endl;
 }
 
 
@@ -433,7 +522,7 @@ void LfUsbCam::printCameraInfo()
 
 LfGigECam::LfGigECam()
 {
-    cout << "LfGigECam::LfGigECam begin..." << endl;
+    cerr << "LfGigECam::LfGigECam begin..." << endl;
 
     CameraInfo camInfo[10];
     unsigned int numCamInfo = 10;
@@ -444,7 +533,7 @@ LfGigECam::LfGigECam()
         throw runtime_error("DiscoverGigECameras failed.");
     }
 
-    cout << "Number of cameras discovered: " << numCamInfo << endl;
+    cerr << "Number of cameras discovered: " << numCamInfo << endl;
 
     for (unsigned int i=0; i < numCamInfo; i++)
     {
@@ -458,7 +547,7 @@ LfGigECam::LfGigECam()
         throw runtime_error("GetNumOfCameras failed.");
     }
 
-    cout << "Number of cameras enumerated: " << numCameras << endl;
+    cerr << "Number of cameras enumerated: " << numCameras << endl;
 
     // Create new array of camera IDs
     guids = new PGRGuid[numCameras];
@@ -487,7 +576,7 @@ LfGigECam::LfGigECam()
 
 void LfGigECam::printCameraInfo(CameraInfo *pCamInfo)
 {
-    cout << "LfGigECam::printCameraInfo" << endl;
+    cerr << "LfGigECam::printCameraInfo" << endl;
 
     ostringstream macAddress;
     macAddress << hex << setw(2) << setfill('0') << (unsigned int)pCamInfo->macAddress.octets[0] << ":" <<
@@ -515,28 +604,28 @@ void LfGigECam::printCameraInfo(CameraInfo *pCamInfo)
         (unsigned int)pCamInfo->defaultGateway.octets[2] << "." <<
         (unsigned int)pCamInfo->defaultGateway.octets[3];
 
-    cout << endl;
-    cout << "*** GigE CAMERA INFORMATION ***" << endl;
-    cout << "Serial number - " << pCamInfo->serialNumber << endl;
-    cout << "Camera model - " << pCamInfo->modelName << endl;
-    cout << "Camera vendor - " << pCamInfo->vendorName << endl;
-    cout << "Sensor - " << pCamInfo->sensorInfo << endl;
-    cout << "Resolution - " << pCamInfo->sensorResolution << endl;
-    cout << "Firmware version - " << pCamInfo->firmwareVersion << endl;
-    cout << "Firmware build time - " << pCamInfo->firmwareBuildTime << endl;
-    cout << "GigE version - " << pCamInfo->gigEMajorVersion << "." << pCamInfo->gigEMinorVersion << endl;
-    cout << "User defined name - " << pCamInfo->userDefinedName << endl;
-    cout << "XML URL 1 - " << pCamInfo->xmlURL1 << endl;
-    cout << "XML URL 2 - " << pCamInfo->xmlURL2 << endl;
-    cout << "MAC address - " << macAddress.str() << endl;
-    cout << "IP address - " << ipAddress.str() << endl;
-    cout << "Subnet mask - " << subnetMask.str() << endl;
-    cout << "Default gateway - " << defaultGateway.str() << endl << endl;
+    cerr << endl;
+    cerr << "*** GigE CAMERA INFORMATION ***" << endl;
+    cerr << "Serial number - " << pCamInfo->serialNumber << endl;
+    cerr << "Camera model - " << pCamInfo->modelName << endl;
+    cerr << "Camera vendor - " << pCamInfo->vendorName << endl;
+    cerr << "Sensor - " << pCamInfo->sensorInfo << endl;
+    cerr << "Resolution - " << pCamInfo->sensorResolution << endl;
+    cerr << "Firmware version - " << pCamInfo->firmwareVersion << endl;
+    cerr << "Firmware build time - " << pCamInfo->firmwareBuildTime << endl;
+    cerr << "GigE version - " << pCamInfo->gigEMajorVersion << "." << pCamInfo->gigEMinorVersion << endl;
+    cerr << "User defined name - " << pCamInfo->userDefinedName << endl;
+    cerr << "XML URL 1 - " << pCamInfo->xmlURL1 << endl;
+    cerr << "XML URL 2 - " << pCamInfo->xmlURL2 << endl;
+    cerr << "MAC address - " << macAddress.str() << endl;
+    cerr << "IP address - " << ipAddress.str() << endl;
+    cerr << "Subnet mask - " << subnetMask.str() << endl;
+    cerr << "Default gateway - " << defaultGateway.str() << endl << endl;
 }
 
 void LfGigECam::printAllStreamChannelsInfo()
 {
-    cout << "LfGigECam::printAllStreamChannelsInfo" << endl;
+    cerr << "LfGigECam::printAllStreamChannelsInfo" << endl;
 
     unsigned int numStreamChannels = 0;
     error = ((GigECamera *)pcam)->GetNumStreamChannels( &numStreamChannels );
@@ -568,14 +657,14 @@ void LfGigECam::printAllStreamChannelsInfo()
             throw runtime_error("Error setting GigE stream channel info");
         }
 
-        cout << "Printing stream channel information for channel " << i << endl;
+        cerr << "Printing stream channel information for channel " << i << endl;
         printStreamChannelInfo( &streamChannel );
     }
 }
 
 void LfGigECam::printStreamChannelInfo( GigEStreamChannel* pStreamChannel )
 {
-    cout << "LfGigECam::printStreamChannelInfo" << endl;
+    cerr << "LfGigECam::printStreamChannelInfo" << endl;
 
     //char ipAddress[32];
     ostringstream ipAddress;
@@ -584,18 +673,38 @@ void LfGigECam::printStreamChannelInfo( GigEStreamChannel* pStreamChannel )
         (unsigned int)pStreamChannel->destinationIpAddress.octets[2] << "." <<
         (unsigned int)pStreamChannel->destinationIpAddress.octets[3];
 
-    cout << "Network interface: " << pStreamChannel->networkInterfaceIndex << endl;
-    cout << "Host Port: " << pStreamChannel->hostPort << endl;
-    cout << "Do not fragment bit: " << ( pStreamChannel->doNotFragment ? "Enabled" : "Disabled") << endl;
-    cout << "Packet size: " << pStreamChannel->packetSize << endl;
-    cout << "Inter packet delay: " << pStreamChannel->interPacketDelay << endl;
-    cout << "Destination IP address: " << ipAddress.str() << endl;
-    cout << "Source port (on camera): " << pStreamChannel->sourcePort << endl << endl;
+    cerr << "Network interface: " << pStreamChannel->networkInterfaceIndex << endl;
+    cerr << "Host Port: " << pStreamChannel->hostPort << endl;
+    cerr << "Do not fragment bit: " << ( pStreamChannel->doNotFragment ? "Enabled" : "Disabled") << endl;
+    cerr << "Packet size: " << pStreamChannel->packetSize << endl;
+    cerr << "Inter packet delay: " << pStreamChannel->interPacketDelay << endl;
+    cerr << "Destination IP address: " << ipAddress.str() << endl;
+    cerr << "Source port (on camera): " << pStreamChannel->sourcePort << endl << endl;
 }
 
 void LfGigECam::setCameraSettings()
 {
-    cout << "Querying GigE image setting information..." << endl;
+    cerr << "Querying GigE camera mode..." << endl;
+
+    Mode mode;
+    error = ((GigECamera *)pcam)->GetGigEImagingMode ( &mode );
+    if (error != PGRERROR_OK)
+    {
+        printError( error );
+        throw runtime_error("Error querying GigE camera mode");
+    }
+    cerr << "Mode = " << mode << endl;
+
+    mode = MODE_6;  // 612 x 512
+    cerr << "Setting GigE camera to mode " << mode << endl;
+    error = ((GigECamera *)pcam)->SetGigEImagingMode ( mode );
+    if (error != PGRERROR_OK)
+    {
+        printError( error );
+        throw runtime_error("Error setting GigE camera mode");
+    }
+
+    cerr << "Querying GigE image setting information..." << endl;
 
     GigEImageSettingsInfo imageSettingsInfo;
     error = ((GigECamera *)pcam)->GetGigEImageSettingsInfo( &imageSettingsInfo );
@@ -605,14 +714,37 @@ void LfGigECam::setCameraSettings()
         throw runtime_error("Error getting GigE image settings info");
     }
 
+    cerr << "maxWidth = " << imageSettingsInfo.maxWidth << endl;
+    cerr << "maxHeight = " << imageSettingsInfo.maxHeight << endl;
+    cerr << "offsetHStepSize = " << imageSettingsInfo.offsetHStepSize << endl;
+    cerr << "offsetVStepSize = " << imageSettingsInfo.offsetVStepSize << endl;
+    cerr << "imageHStepSize = " << imageSettingsInfo.imageHStepSize << endl;
+    cerr << "imageVStepSize = " << imageSettingsInfo.imageVStepSize << endl;
+    cerr << "pixelFormatBitField = " << imageSettingsInfo.pixelFormatBitField << endl;
+    cerr << "vendorPixelFormatBitField = " << imageSettingsInfo.vendorPixelFormatBitField << endl;
+
+    cerr << "Querying GigE image settings ..." << endl;
+
     GigEImageSettings imageSettings;
+    error = ((GigECamera *)pcam)->GetGigEImageSettings( &imageSettings );
+    if (error != PGRERROR_OK)
+    {
+        printError( error );
+        throw runtime_error("Error getting GigE image settings");
+    }
+    cerr << "offsetX = " << imageSettings.offsetX << endl;
+    cerr << "offsetY = " << imageSettings.offsetY << endl;
+    cerr << "height = " << imageSettings.height << endl;
+    cerr << "width = " << imageSettings.width << endl;
+    cerr << "pixelFormat = " << imageSettings.pixelFormat << endl;
+
+    cerr << "Setting GigE image settings..." << endl;
+
     imageSettings.offsetX = 0;
     imageSettings.offsetY = 0;
     imageSettings.height = imageSettingsInfo.maxHeight;
     imageSettings.width = imageSettingsInfo.maxWidth;
     imageSettings.pixelFormat = PIXEL_FORMAT_MONO8;
-
-    cout << "Setting GigE image settings..." << endl;
 
     error = ((GigECamera *)pcam)->SetGigEImageSettings( &imageSettings );
     if (error != PGRERROR_OK)
@@ -620,5 +752,44 @@ void LfGigECam::setCameraSettings()
         printError( error );
         throw runtime_error("Error setting GigE image settings");
     }
+    /*
+    // Set the camera exposure
+    EmbeddedImageInfo embeddedInfo;
+    error = ((GigECamera *)pcam)->GetEmbeddedImageInfo( &embeddedInfo );
+    if ( error != PGRERROR_OK ) {
+        printError( error );
+        throw runtime_error( "Error reading embedded image info");
+    }
+    cerr << "EmbeddedImageInfo: (on/off)" << endl;
+    cerr << "  timestamp = " << embeddedInfo.timestamp.onOff << endl;
+    cerr << "  gain = " << embeddedInfo.gain.onOff << endl;
+    cerr << "  shutter = " << embeddedInfo.shutter.onOff << endl;
+    cerr << "  brightness " << embeddedInfo.brightness.onOff << endl;
+    cerr << "  exposure = " << embeddedInfo.exposure.onOff << endl;
+    cerr << "  whiteBalance = " << embeddedInfo.whiteBalance.onOff << endl;
+    cerr << "  frameCounter = " << embeddedInfo.frameCounter.onOff << endl;
+    cerr << "  strobePattern = " << embeddedInfo.strobePattern.onOff << endl;
+    cerr << "  GPIOPinState = " << embeddedInfo.GPIOPinState.onOff << endl;
+    cerr << "  ROIPosition = " << embeddedInfo.ROIPosition.onOff << endl;
 
+    cerr << "EmbeddedImageInfo: (available)" << endl;
+    cerr << "  timestamp = " << embeddedInfo.timestamp.available << endl;
+    cerr << "  gain = " << embeddedInfo.gain.available << endl;
+    cerr << "  shutter = " << embeddedInfo.shutter.available << endl;
+    cerr << "  brightness " << embeddedInfo.brightness.available << endl;
+    cerr << "  exposure = " << embeddedInfo.exposure.available << endl;
+    cerr << "  whiteBalance = " << embeddedInfo.whiteBalance.available << endl;
+    cerr << "  frameCounter = " << embeddedInfo.frameCounter.available << endl;
+    cerr << "  strobePattern = " << embeddedInfo.strobePattern.available << endl;
+    cerr << "  GPIOPinState = " << embeddedInfo.GPIOPinState.available << endl;
+    cerr << "  ROIPosition = " << embeddedInfo.ROIPosition.available << endl;
+
+    error = ((GigECamera *)pcam)->SetEmbeddedImageInfo( &embeddedInfo );
+    if ( error != PGRERROR_OK ) {
+        printError( error );
+        throw runtime_error( "Error writing embedded image info");
+    }
+    */
 }
+
+

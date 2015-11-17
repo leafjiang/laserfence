@@ -1,0 +1,111 @@
+  1: adminuser@adminuser-VirtualBox:~/fp/laserfence/lfcam$ ../../laserfence-bin/lfapp 10 10 400 400 -n 10 1>stdout.txt 2>stderr.txt
+  2: 
+  3: row1 10
+  4: col1 10
+  5: row2 400
+  6: col2 400
+  7: Capture 10 frames, save them to disk, then quit program.
+  8: Application started on 1439341969785 ms since epoch
+  9: Version: 242e-dirty
+ 10: LfCam::LfCam begin...
+ 11: LfGigECam::LfGigECam begin...
+ 12: Number of cameras discovered: 1
+ 13: LfGigECam::printCameraInfo
+ 14: 
+ 15: *** GigE CAMERA INFORMATION ***
+ 16: Serial number - 12501906
+ 17: Camera model - Flea3 FL3-GE-50S5C
+ 18: Camera vendor - Point Grey Research
+ 19: Sensor - 
+ 20: Resolution - 
+ 21: Firmware version - 
+ 22: Firmware build time - 
+ 23: GigE version - 1.2
+ 24: User defined name - 
+ 25: XML URL 1 - 
+ 26: XML URL 2 - 
+ 27: MAC address - 00:b0:9d:be:c3:92
+ 28: IP address - 192.168.1.3
+ 29: Subnet mask - 255.255.255.0
+ 30: Default gateway - 192.168.1.1
+ 31: 
+ 32: Number of cameras enumerated: 1
+ 33: LfCam::printBuildInfo
+ 34: FlyCapture2 library version: 2.7.3.19
+ 35: Application build date: Aug 11 2015 20:49:58
+ 36: 
+ 37: Connecting to camera...
+ 38: LfCam::powerOn
+ 39: LfGigECam::printAllStreamChannelsInfo
+ 40: Printing stream channel information for channel 0
+ 41: LfGigECam::printStreamChannelInfo
+ 42: Network interface: 0
+ 43: Host Port: 0
+ 44: Do not fragment bit: Disabled
+ 45: Packet size: 1400
+ 46: Inter packet delay: 400
+ 47: Destination IP address: 224.0.0.1
+ 48: Source port (on camera): 1108
+ 49: 
+ 50: LfCam::setTriggerMode3()
+ 51: Get current trigger settings
+ 52:  onOff = 1
+ 53:  mode = 0
+ 54:  parameter = 2
+ 55:  polarity = 1
+ 56:  source = 0
+ 57: Set trigger settings
+ 58:  onOff = 1
+ 59:  mode = 0
+ 60:  parameter = 2
+ 61:  polarity = 1
+ 62:  source = 0
+ 63: Polling camera for trigger ready
+ 64: Trigger is ready!
+ 65: Querying GigE camera mode...
+ 66: Mode = 6
+ 67: Setting GigE camera to mode 6
+ 68: Querying GigE image setting information...
+ 69: maxWidth = 612
+ 70: maxHeight = 512
+ 71: offsetHStepSize = 2
+ 72: offsetVStepSize = 2
+ 73: imageHStepSize = 4
+ 74: imageVStepSize = 2
+ 75: pixelFormatBitField = 2215641088
+ 76: vendorPixelFormatBitField = 0
+ 77: Querying GigE image settings ...
+ 78: offsetX = 0
+ 79: offsetY = 0
+ 80: height = 512
+ 81: width = 612
+ 82: pixelFormat = 2147483648
+ 83: Setting GigE image settings...
+ 84: Start capturing images...
+ 85: Grabbed image
+ 86: first image rows = 512, cols = 612
+ 87: Grabbed image
+ 88: second image rows = 512, cols = 612
+ 89: Grabbed image
+ 90: first image rows = 512, cols = 612
+ 91: Grabbed image
+ 92: second image rows = 512, cols = 612
+ 93: Grabbed image
+ 94: first image rows = 512, cols = 612
+ 95: Error Trace:
+ 96: Source: CameraInternal.cpp(123) Built: Mar  9 2015 10:16:03 - There is an image consistency issue with this image.
+ 97: +-> From: Iso.cpp(894) Built: Mar  9 2015 10:16:30 - There is an image consistency issue with this image.
+ 98: Grabbed image
+ 99: second image rows = 512, cols = 612
+100: Error Trace:
+101: Source: CameraInternal.cpp(123) Built: Mar  9 2015 10:16:03 - There is an image consistency issue with this image.
+102: +-> From: Iso.cpp(894) Built: Mar  9 2015 10:16:30 - There is an image consistency issue with this image.
+103: Grabbed image
+104: first image rows = 512, cols = 612
+105: Grabbed image
+106: second image rows = 512, cols = 612
+107: Grabbed image
+108: first image rows = 512, cols = 612
+109: Grabbed image
+110: second image rows = 512, cols = 612
+111: Done!

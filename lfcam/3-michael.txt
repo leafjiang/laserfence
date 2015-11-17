@@ -1,0 +1,22 @@
+Hi Michael,
+
+Thank you for your feedback and clarifying the scope of the project.  You are right, the estimate is too expensive for what you were asking for in your last email.
+
+The estimate that I sent you was for a more developed system -- a system that with very few modifications could be used in a production environment.  More precisely, a system that with high accuracy could inspect pouches as the desired throughput of 10000 pouches/hour.  Perhaps a better term for this system is an "engineering development unit," because it is not only the product itself, but the plans to allow the user to modify it to their system.
+
+To clarify, there are two approaches that I've proposed for detecting fibers: using electrostatics and using a laser.  The laser approach seemed less risky to me, and with some early success, and initial excitement about the results in the provisional patent (particularly Fig. 4), I've pushed this technology forward, especially since I think that it can also serve the medical bandage market.  In some sense, the laser approach has already been proven to work on stationary pouches but still needs to be proven for moving pouches.  Sorry if the provisional patent was not clear, as sometimes the legal language can make things hard to understand.  What tests or results would you like to see to determine if this is the right approach for you?  I would be interested in hearing your feedback or concerns about this approach.
+
+My plan is to develop the laser approach at no risk or cost to you.  At a later date, if you think that it will solve your inspection problem, then I would be happy to sell you the engineering development unit.
+
+Sorry if the weekly status reports seem strange, as I know it is not standard industry practice to send reports without a contract.  There is no expectation of being paid for this work.  The purpose is to benefit both of us.  I would like to develop an inspection station fulfills all your requirements, and you can tell me exactly what you need.  I hope that these reports will provide an opportunity for feedback and effective communication.
+
+If you would like, I can investigate the electrostatics approach in parallel to see if it works.  For this, I need to order some electrostatic charging bars, apply the charge to your samples, and see whether the fibers actually do stand up, and whether they can be detected electronically.  This would be a laboratory experiment that would not be directly transplantable to a production environment.  This effort would require about 1 month of engineering time and about $10K of parts, and hence would be approximately a $30K effort.  Please let me know if this would be an interesting option for you.
+
+Please find attached the latest status report for the laser fence.  Again, the reports are all free of charge.
+
+If you could buy the solution to your inspection problem today, what would it look like?  How would it interface with the rest of the manufacturing process?  How much would it cost?  When would you want it delivered by?
+
+Thank you for your complement on my Chinese, but it is certainly not deserved.  I have a lot more to learn before my Chinese can be considered good.  I only wish it were as good as your English.  Below, I will attach a translation of this email (by translate.google.com), which will certainly have mistakes, but I hope that your team finds it useful.
+
+Best regards,
+Leaf
